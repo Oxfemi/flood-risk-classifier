@@ -50,6 +50,13 @@ def prepare_input(features, scaler):
     into a scaled DataFrame.
     """
 
+    missing = set(FEATURE_COLUMNS) - set(features.keys())
+
+    if missing:
+        raise ValueError(
+            f"Missing features: {sorted(missing)}"
+        )
+
     input_df = pd.DataFrame([features])
 
     input_df = input_df[FEATURE_COLUMNS]
