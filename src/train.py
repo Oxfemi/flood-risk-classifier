@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
+import json
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -139,6 +140,21 @@ def evaluate_model(model, X_test, y_test):
         "F1 Score": f1,
     }
 
+def save_metrics(metrics):
+    """
+    Save model performance metrics.
+    """
+
+    with open(
+        "models/artifacts/metrics.json",
+        "w",
+    ) as f:
+        json.dump(
+            metrics,
+            f,
+            indent=4,
+        )
+
 def compare_models(models, X_train, X_test, y_train, y_test):
     """
     Train and evaluate all models.
@@ -180,25 +196,54 @@ def compare_models(models, X_train, X_test, y_train, y_test):
 
 def save_results(results_df, best_model):
     """
-    Save model comparison results
-    and the best trained model.
+    Save model comparison results,
+    the best trained model,
+    and the best model's metrics.
     """
 
     Path("results").mkdir(exist_ok=True)
+
     Path("models/artifacts").mkdir(
         parents=True,
-        exist_ok=True
+        exist_ok=True,
     )
 
+    # Save comparison table
     results_df.to_csv(
         "results/model_results.csv",
         index=False,
     )
 
+    # Save best model
     joblib.dump(
         best_model,
         "models/artifacts/flood_model.pkl",
     )
+
+    # Save best model metrics
+    best_metrics = results_df.sort_values(
+        by="Accuracy",
+        ascending=False,
+    ).iloc[0]
+
+    metrics = {
+        "Model": best_metrics["Model"],
+        "Accuracy": float(best_metrics["Accuracy"]),
+        "Precision": float(best_metrics["Precision"]),
+        "Recall": float(best_metrics["Recall"]),
+        "F1 Score": float(best_metrics["F1 Score"]),
+    }
+
+    with open(
+        "models/artifacts/metrics.json",
+        "w",
+    ) as file:
+
+        json.dump(
+            metrics,
+            file,
+            indent=4,
+        )
 
 def create_result_directories():
 

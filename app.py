@@ -5,7 +5,7 @@ import re
 from src.predict import predict
 from src.config import FEATURE_COLUMNS
 from src.explain import get_feature_importance
-
+from src.metrics import load_metrics
 
 st.set_page_config(
     page_title="Flood Risk Classifier",
@@ -40,6 +40,37 @@ Move the sliders in the sidebar to simulate different
 conditions and click **Predict Flood Risk**.
 """
     )
+
+metrics = load_metrics()
+
+st.subheader("📈 Model Performance")
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.metric(
+        "Accuracy",
+        f"{metrics['Accuracy']:.2%}",
+    )
+
+with col2:
+    st.metric(
+        "Precision",
+        f"{metrics['Precision']:.2%}",
+    )
+
+with col3:
+    st.metric(
+        "Recall",
+        f"{metrics['Recall']:.2%}",
+    )
+
+with col4:
+    st.metric(
+        "F1 Score",
+        f"{metrics['F1 Score']:.2%}",
+    )
+
 
 
 FEATURE_ICONS = {
