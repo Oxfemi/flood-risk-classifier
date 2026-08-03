@@ -1,6 +1,7 @@
 import joblib
 import numpy as np
 import pandas as pd
+from src.config import FEATURE_COLUMNS
 
 MODEL_PATH = "models/artifacts/flood_model.pkl"
 SCALER_PATH = "models/artifacts/scaler.pkl"
@@ -18,30 +19,6 @@ def load_artifacts():
     encoder = joblib.load(ENCODER_PATH)
 
     return model, scaler, encoder
-
-
-FEATURE_COLUMNS = [
-    "MonsoonIntensity",
-    "TopographyDrainage",
-    "RiverManagement",
-    "Deforestation",
-    "Urbanization",
-    "ClimateChange",
-    "DamsQuality",
-    "Siltation",
-    "AgriculturalPractices",
-    "Encroachments",
-    "IneffectiveDisasterPreparedness",
-    "DrainageSystems",
-    "CoastalVulnerability",
-    "Landslides",
-    "Watersheds",
-    "DeterioratingInfrastructure",
-    "PopulationScore",
-    "WetlandLoss",
-    "InadequatePlanning",
-    "PoliticalFactors",
-]
 
 
 def prepare_input(features, scaler):
