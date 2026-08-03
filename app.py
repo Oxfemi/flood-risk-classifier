@@ -4,6 +4,7 @@ import re
 
 from src.predict import predict
 from src.config import FEATURE_COLUMNS
+from src.explain import get_feature_importance
 
 
 st.set_page_config(
@@ -12,19 +13,32 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("🌊 Flood Risk Classifier")
-st.caption("AI/ML Capstone Project | 3MTT NextGen Cohort")
+col1, col2 = st.columns([1, 6])
 
-with st.expander("📖 About this Project"):
-    st.write(
-        """
-        This application predicts flood risk using a trained
-        Machine Learning model.
+with col1:
+    st.image(
+        "https://img.icons8.com/color/96/floods.png",
+        width=70,
+    )
 
-        Adjust the environmental and infrastructure factors
-        using the sliders in the sidebar and click the button
-        below to predict flood risk.
+with col2:
+    st.title("Flood Risk Classifier")
+    st.caption("AI/ML Capstone Project | 3MTT NextGen Cohort")
+
+
+
+with st.container():
+
+    st.info(
         """
+🌊 **Flood Risk Classifier**
+
+This AI application predicts flood risk using environmental,
+climatic and infrastructure indicators.
+
+Move the sliders in the sidebar to simulate different
+conditions and click **Predict Flood Risk**.
+"""
     )
 
 
@@ -52,7 +66,16 @@ FEATURE_ICONS = {
 }
 
 
-st.sidebar.header("Input Features")
+st.sidebar.title("🌊 Flood Inputs")
+
+st.sidebar.markdown(
+    """
+Adjust the environmental
+conditions below.
+"""
+)
+
+st.sidebar.divider()
 
 
 def get_user_input():
@@ -77,6 +100,42 @@ def get_user_input():
 
 user_input = get_user_input()
 
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric(
+        "Features",
+        len(FEATURE_COLUMNS),
+    )
+
+with col2:
+    st.metric(
+        "ML Model",
+        "Random Forest",
+    )
+
+with col3:
+    st.metric(
+        "Prediction Classes",
+        "3",
+    )
+
+
+with st.expander("📊 Current Input Summary"):
+
+    input_df = pd.DataFrame(
+        user_input.items(),
+        columns=["Feature", "Value"],
+    )
+
+    st.dataframe(
+        input_df,
+        use_container_width=True,
+    )
+
+
+
 if st.button("🌊 Predict Flood Risk", use_container_width=True):
 
     result = predict(user_input)
@@ -87,6 +146,7 @@ if st.button("🌊 Predict Flood Risk", use_container_width=True):
 
     with left_col:
         st.subheader("Prediction Result")
+        st.divider()
         if risk == "Low":
             st.success("🟢 Low Flood Risk")
         elif risk == "Medium":
@@ -94,25 +154,59 @@ if st.button("🌊 Predict Flood Risk", use_container_width=True):
         else:
             st.error("🔴 High Flood Risk")
 
-        st.metric(
-            "Prediction Confidence",
-            f"{result['confidence']:.2%}",
+        colA, colB = st.columns(2)
+
+        with colA:
+            st.metric(
+                "Risk Level",
+                risk,
+            )
+
+        with colB:
+            st.metric(
+                "Confidence",
+                f"{result['confidence']:.2%}",
+            )
+
+        st.progress(result["confidence"])
+
+        st.write(
+            f"Model confidence: **{result['confidence']:.2%}**"
         )
 
         st.subheader("Recommendation")
 
         if risk == "Low":
-            st.info("Flood risk is currently low. Continue routine monitoring.")
+            st.success(
+                """
+            ### Recommended Actions
+            - Continue monitoring rainfall.
+            - Maintain drainage systems.
+            - Preserve surrounding vegetation.
+            """
+            )
         elif risk == "Medium":
             st.warning(
-                "Flood risk is moderate. Monitor weather forecasts and inspect drainage systems."
+                """
+            ### Recommended Actions
+            - Inspect drainage channels.
+            - Monitor weather forecasts.
+            - Prepare emergency supplies.
+            """
             )
         else:
             st.error(
-                "High flood risk detected. Emergency preparedness is advised."
+                """
+            ### Immediate Actions
+
+            - Activate emergency response plans.
+            - Warn nearby communities.
+            - Prepare for possible evacuation.
+            """
             )
     with right_col:
         st.subheader("Prediction Probabilities")
+        st.divider()
     
         probability_df = pd.DataFrame.from_dict(
             result["probabilities"],
@@ -120,7 +214,13 @@ if st.button("🌊 Predict Flood Risk", use_container_width=True):
             columns=["Probability"],
         )
     
+        probability_df = probability_df.sort_values(
+            by="Probability",
+            ascending=False,
+        )
+
         st.bar_chart(probability_df)
+
     
         st.subheader("Selected Inputs")
     
@@ -132,4 +232,43 @@ if st.button("🌊 Predict Flood Risk", use_container_width=True):
             use_container_width=True,
         )
 
+        st.divider()
 
+        st.subheader("📊 Model Explainability")
+
+        st.caption(
+            "These are the features that had the greatest influence on the trained model."
+        )
+
+        importance_df = get_feature_importance()
+
+        st.bar_chart(
+            importance_df.set_index("Feature")
+        )
+
+        st.subheader("🏆 Top 5 Most Important Features")
+
+        st.dataframe(
+            importance_df.head(),
+            use_container_width=True,
+        )
+
+        st.info(
+            """
+        **What does Feature Importance mean?**
+        
+        Feature importance measures how much each variable contributed to the model's predictions.
+        
+        Higher importance means the model relied more heavily on that feature when determining flood risk.
+        """
+        )
+
+
+
+
+
+st.divider()
+
+st.caption(
+    "Built with ❤️ using Python, Scikit-learn and Streamlit"
+)
